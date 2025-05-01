@@ -1,0 +1,78 @@
+﻿@model GestionEstudiantes.ViewModels.EstidianteCursoViewModel
+
+<h1>Gestion estudiantes y Cursos</h1>
+
+<div class="col">
+    <div class="row">
+        <form asp-controller="Estudiante" asp-action="Registro" method="post">
+            <div class="form-group">
+                <input asp-for="Estudiante.IdEstudiante" class="form-control" type="hidden" />
+                <input asp-for="Estudiante.IdCursos" class="form-control" type="hidden" />
+                <div class="form-group">
+                    <label class="control-label">Nombre</label>
+                    <input asp-for="Estudiante.Nombre" class="form-control" required />
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label">Email</label>
+                    <input asp-for="Estudiante.Email" class="form-control" required />
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label">Cursos</label>
+                    @foreach (var curso in Model.CursosDisponibles)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="Cursoseleccionado[]" value="@curso.Id"
+                            @(Model.Estudiante != null && Model.Estudiante.IdCursos.Any(c => c.Id == curso.Id) ? "checked" : "") />
+                            <label class="form-check-label">@curso.Nombre (@curso.Creditos créditos)</label>
+                        </div>
+                    }
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 30px;">Registrar Estudiante</button>
+            </div>
+        </form>
+        <hr style="margin-top:30px; height: 7px;" />
+        <form asp-controller="Estudiante" asp-action="Index" method="get" style="display:flex; margin-top: 40px;">
+            <input type="text" name="filter" class="form-control" value="@Model.Filtro" placeholder="Buscar estudiante" />
+            <button type="submit" class="btn btn-primary">Buscar</button>
+        </form>
+
+        <table class="table table-striped mt-4">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Curso</th>
+                    <th>Creditos</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Estudiantes)
+                {
+                    @foreach (var curso in item.IdCursos)
+                    {
+                        <tr>
+                            <td>@item.Nombre</td>
+                            <td>@item.Email</td>
+                            <td>@curso.Nombre</td>
+                            <td>@curso.Creditos</td>
+                            <td colspan="3">
+                                ID: <strong>@item.IdEstudiante</strong>
+                            </td>
+                            <td style="display:flex; justify-content: space-evenly">
+                                <a href="@Url.Action("Update", "Estudiante", new { idEstudiante = item.IdEstudiante })" class="btn btn-sm btn-warning">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form asp-controller="Estudiante" asp-action="Delete" asp-route-idEstudiante="@item.IdEstudiante" asp-route-idCurso="@curso.Id">
+                                    <button type="submit"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
