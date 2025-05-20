@@ -70,13 +70,14 @@ def enviar_datos():
 def Notas():
     # Conexión a la base de datos
     conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
-    cursor.callproc("EstudianteNota")
-    for result in cursor.stored_results():
-        consulta = result.fetchall()
+    cursor = conn.cursor()
+    query = "SELECT * FROM Estudiante"
+    cursor.execute(query)
+    estudiantes = cursor.fetchall()
     cursor.close()
     conn.close()
-    return render_template("notasEstudiante.html", consulta = consulta)
+    
+    return render_template("notasEstudiante.html", consulta = estudiantes)
 
 
 # Hay que completar la funcionalidad de esto, para hacer que filter por nombre de estudiante y ya 
@@ -84,24 +85,32 @@ def Notas():
 @app.route('/Notas', methods=['POST'])
 def Filtar():
     conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
 
     if request.method == 'POST':
         estudiante_id = request.form['filtro']
 
         print("ID ESTUDIANTE: ", estudiante_id)
-        cursor.callproc("EstudianteNota", [estudiante_id])
-        for result in cursor.stored_results():
-            consulta_notas = result.fetchall()
+
+        queryEstudiantes = "SELECT * FROM Estudiante"
+        cursor.execute(queryEstudiantes)
+        estudiantes = cursor.fetchall()
+
+        query = f"SELECT * FROM Estudiante AS e INNER JOIN Notas AS n ON e.Id = n.Id WHERE e.Id = %s"
+        cursor.execute(query, (estudiante_id,))
+        notas = cursor.fetchall()
 
         cursor.close()
         conn.close()
-        return render_template("notasEstudiante.html", consulta=consulta_notas)
+
+        promedio = promedio = sum(int(fila[4]) for fila in notas) / len(notas) if notas else 0
+        
+
+        return render_template("notasEstudiante.html", consulta=notas, estu=estudiantes, promedio = promedio)
+
 
     return render_template("notasEstudiante.html", consulta = estudiantes)
     
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)
