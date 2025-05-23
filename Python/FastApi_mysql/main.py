@@ -5,7 +5,7 @@ import mysql.connector
 app = FastAPI()
 
 db_config = {
-    "host": "localhost",
+    "server": "localhost",
     "database": "fastapi_db",
     "user": "root",
     "password": "root"

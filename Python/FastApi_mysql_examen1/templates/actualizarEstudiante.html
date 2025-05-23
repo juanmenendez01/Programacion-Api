@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Actualizar estudiante</h1>
+
+    <form action="/editarEstudiantes" method="post">
+        <label for="Id">Id:</label>
+        <input type="number" name="Id" value="{{ estudiante['Id'] }}">
+        
+        <label for="Nombre">Nombre:</label>
+        <input type="text" id="Nombre" name="Nombre" value="{{ estudiante['Nombre'] }}" required>
+        <br>
+        
+        <label for="Apellido">Apellido:</label>
+        <input type="text" id="Apellido" name="Apellido" value="{{ estudiante['Apellido'] }}" required>
+        <br>
+        
+        <button type="submit">Actualizar</button>
+    </form>
+</body>
+</html>
