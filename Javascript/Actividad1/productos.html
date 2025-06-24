@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script type="" src="../Js/Producto.js"></script>
+</head>
+<body>
+    <header>
+        <h1>JMV Store</h1>
+    </header>
+    <section>
+        <h2>Productos</h2>
+        <form action="">
+            <label for="productName">Nombre del producto</label>
+            <input type="text" name="productName" id="productName">
+            <br><br>
+
+            <button class="btn btn-succes" type="button" onclick="productPrice()">
+                price
+            </button>
+            <br><br>
+
+            <p>
+                Unite Price:
+                <textarea name="result" id="result" cols="6" rows="1"></textarea>
+            </p>
+        </form>
+    </section>
+    <footer>
+        &reg; Created by Juan menendez
+    </footer>
+
+
+    <script>
+        for(let people =1;people<=3;people++){
+            var age = prompt("Enter age")
+            const ageParameter = 18;
+            if(age >= ageParameter){
+                alert("papito")
+            }else{
+                alert("te falta recorrido menor")
+            }
+        }
+    </script>
+
+    <script>
+        var cars = ["Toyota", "Chevrolet", "Mazda", "Suzuki"]
+
+        for (let brands = 0; brands<cars.length; brands ++){
+            const viewCars = cars[brands] + "<br>"
+
+            document.write(viewCars)
+        }
+    </script>
+</body>
+</html>

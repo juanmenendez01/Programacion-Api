@@ -20,58 +20,64 @@ dbconfig = {
     'password': 'root',
 }
 
+# class Estudiante(BaseModel):
+#     Id: int
+#     Nombre: str
+#     Apellido: str
+
+# class Notas(BaseModel):
+#     Id_estudiante: int
+#     Matematicas: int
+#     Ingles: int
+#     Español: int
 
 @app.get("/", response_class=HTMLResponse)
 def Home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-class Estudiante(BaseModel):
-    Id: int
-    Nombre: str
-    Apellido: str
-
 @app.get("/estudiantes", response_class=HTMLResponse)
 def get_estudiantes(request: Request):
     conn = mysql.connector.connect(**dbconfig)
     cursor = conn.cursor(dictionary=True)
-    query = "SELECT * FROM estudiante"
+    query = """
+        SELECT 
+            e.Id,
+            e.Nombre,
+            e.Apellido,
+            n.Matematicas,
+            n.Ingles,
+            n.Español
+        FROM estudiante e
+        JOIN notas n ON n.Id = e.Id
+    """
     cursor.execute(query)
     estudiantes = cursor.fetchall()
     cursor.close()
     conn.close()
     return templates.TemplateResponse("gestionEstudiantes.html", {"request": request, "estudiantes": estudiantes})
 
-
-@app.get("/estudiantes/{id}")
-def estudiante_id(id: int):
-    conn = mysql.connector.connect(**dbconfig)
-    cursor = conn.cursor()
-    query = "SELECT * FROM estudiante WHERE id = %s"
-    cursor.execute(query, (id,))
-    estudiante = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    if estudiante:
-        return {"Id" : estudiante[0], "Nombre": estudiante[1], "Apellido": estudiante[2]}
-    else:
-        raise HTTPException(status_code=404, detail="Estudiante no encontrado")
-    
 @app.get("/crearEstudiantes", response_class=HTMLResponse)
 def formulario_crear_estudiante(request: Request):
     return templates.TemplateResponse("crearEstudiante.html", {"request": request})
 
 @app.post("/crearEstudiantes", response_class=HTMLResponse)
-def crear_estudiante(request: Request,
+def crear_estudiante(
+    request: Request,
     Id: int = Form(...),
     Nombre: str = Form(...),
-    Apellido: str = Form(...)):
-    
-    estudiante = Estudiante(Id=Id, Nombre=Nombre, Apellido=Apellido)
+    Apellido: str = Form(...),
+    Español: int = Form(...),
+    Ingles: int = Form(...),
+    Matematicas: int = Form(...)
+):
 
     conn = mysql.connector.connect(**dbconfig)
     cursor = conn.cursor()
     query = "INSERT INTO estudiante (Id, Nombre, Apellido) VALUES (%s, %s, %s)"
-    cursor.execute(query, (estudiante.Id, estudiante.Nombre, estudiante.Apellido))
+    cursor.execute(query, (Id, Nombre, Apellido))
+
+    query_notas = "INSERT INTO notas (Id, Matematicas, Ingles, Español) VALUES (%s, %s, %s, %s)"
+    cursor.execute(query_notas, (Id, Matematicas, Ingles, Español))
     conn.commit()
     cursor.close()
     conn.close()
@@ -81,26 +87,40 @@ def crear_estudiante(request: Request,
 def mostrar_formulario_actualizacion(Id: int, request: Request):
     conn = mysql.connector.connect(**dbconfig)
     cursor = conn.cursor(dictionary=True)
+    
+    query_notas = "SELECT * FROM notas WHERE Id = %s"
+    cursor.execute(query_notas, (Id,))
+    notas = cursor.fetchone() 
+
     cursor.execute("SELECT * FROM estudiante WHERE Id = %s", (Id,))
-    estudiante = cursor.fetchone()
+    estudiante = cursor.fetchone() 
+
     cursor.close()
     conn.close()
+    
     return templates.TemplateResponse("actualizarEstudiante.html", {
         "request": request,
-        "estudiante": estudiante
+        "estudiante": estudiante,
+        "notas": notas 
     })
+
 
 @app.post("/editarEstudiantes", response_class=HTMLResponse)
 def actualizar_estudiante(
     request: Request,
     Id: int = Form(...),
     Nombre: str = Form(...),
-    Apellido: str = Form(...)
+    Apellido: str = Form(...),
+    Español: int = Form(...),
+    Ingles: int = Form(...),
+    Matematicas: int = Form(...)
     ):
 
     conn = mysql.connector.connect(**dbconfig)
     cursor = conn.cursor()
     query = "UPDATE estudiante SET Nombre = %s, Apellido = %s WHERE Id = %s"
+    query_notas = "UPDATE notas SET Matematicas = %s, Ingles = %s, Español = %s WHERE Id = %s"
+    cursor.execute(query_notas, (Matematicas, Ingles, Español, Id))
     cursor.execute(query, (Nombre, Apellido, Id))
     conn.commit()
     cursor.close()
@@ -122,40 +142,5 @@ def eliminar_estudiante(request: Request,
     cursor.close()
     conn.close()
     return RedirectResponse(url="/estudiantes", status_code=303)
-
-
-class Notas(BaseModel):
-    Id: int
-    Id_Estudiante: int
-    Matematicas: float
-    Ingles: float
-    Español: float
-
-@app.post("/Notas")
-def crear_notas(notas: Notas):
-    conn = mysql.connector.connect(**dbconfig)
-    cursor = conn.cursor()
-    query = "SELECT e.Id, e.Nombre, e.Apellido, n.Matematicas, n.Ingles, n.Español FROM estudiante e JOIN notas n ON e.Id = n.Id_Estudiante WHERE e.Id = %s"
-    cursor.execute(query, (notas.Id, notas.Id_Estudiante, notas.Matematicas, notas.Ingles, notas.Español))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return {"mensaje": "Notas creadas correctamente", "notas": notas}
-
-@app.get("/estudiantesNotas/{id}")
-def estudiante_notas(id: int):
-    conn = mysql.connector.connect(**dbconfig)
-    cursor = conn.cursor()
-    query = "SELECT e.Id, e.Nombre, e.Apellido, n.Matematicas, n.Ingles, n.Español FROM estudiante e JOIN notas n ON e.Id = n.Id WHERE e.Id = %s"
-    cursor.execute(query, (id,))
-    estudiante = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    if estudiante:
-        return [{"Id" : e[0], "Nombre": e[1], "Apellido": e[2], "Matematicas": e[3], "Ingles": e[4], "Español": e[5]} for e in estudiante]
-    else:
-        raise HTTPException(status_code=404, detail="Estudiante no encontrado")
-    
-
 
 
